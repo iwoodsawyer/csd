@@ -18,8 +18,6 @@
 
 void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    ptrdiff_t lwork, lrwork, *iwork, info = 1;
-    size_t cplx = 0, dc = 1;
     double *X11p, *X11pr, *X12p, *X12pr, *X21p, *X21pr, *X22p, *X22pr;
     #if !(MX_HAS_INTERLEAVED_COMPLEX)
     double *X11pi, *X12pi, *X21pi, *X22pi;
@@ -29,12 +27,14 @@ void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double *U1pi, *U2pi, *V1pi, *V2pi;
     #endif
     double *theta, *work, *rwork, size, rsize;
-    size_t p, q, m, r, ldu1, ldu2, ldv1t, ldv2t, element_size = sizeof(double);
-    size_t mx11, nx11, ldx11, mx12, nx12, ldx12, mx21, nx21, ldx21, mx22, nx22, ldx22;
-    mwIndex i, j;
+    mwSignedIndex lwork, lrwork, *iwork, info = 1, cplx = 0, dc = 1;
+    mwSignedIndex i, j, p, q, m, r;
+    mwSignedIndex ldu1, ldu2, ldv1t, ldv2t, ldx11, ldx12, ldx21, ldx22;
+    mwSize mx11, nx11, mx12, nx12, mx21, nx21, mx22, nx22;
     char jobu1='Y', jobu2='Y', jobv1t='Y', jobv2t='Y', trans='O', signs='D';
     mxClassID classid = mxDOUBLE_CLASS;
     mxComplexity cplxflag = mxREAL;
+    size_t element_size = sizeof(double);
     
     /* check complex */
     if (mxIsComplex(prhs[0]) || mxIsComplex(prhs[1]) ||
@@ -173,7 +173,7 @@ void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* allocate iwork matrix */
     r = max(1,min(min(p,m-p),min(q,m-q)));
     theta = mxMalloc(r*element_size);
-    iwork = mxCalloc(max(1,m-r),sizeof(ptrdiff_t));
+    iwork = mxCalloc(max(1,m-r),sizeof(mwSignedIndex));
     
     /* determine blocksize */
     lwork = -1;
@@ -215,11 +215,11 @@ void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     size = size + 1;
        
     /* allocate work matrix */
-    lwork = max(1,(size_t)size);
+    lwork = max(1,(mwSignedIndex)size);
     work = mxCalloc(dc*lwork,element_size);
     if (cplx) {
         if (rsize > 0)
-            lrwork = max(1,(size_t)rsize);
+            lrwork = max(1,(mwSignedIndex)rsize);
         else {
             /* We compute the size of lrwork because LAPACK does not return it on a query call. */
             lrwork = 2 + 9*ldv1t + 9*ldv2t + max(1,8*p) + max(1,8*q);
@@ -353,7 +353,7 @@ void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* create U2 matrix */
     if (nlhs > 4)
     {
-        size_t l = m-p;
+        mwSignedIndex l = m-p;
         plhs[4] = mxCreateNumericMatrix(l,l,classid,cplxflag);
         U2pr = mxGetData(plhs[4]);
         #if !(MX_HAS_INTERLEAVED_COMPLEX)
@@ -387,7 +387,7 @@ void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* create V2 matrix */
     if (nlhs > 5)
     {
-        size_t k = m-q;
+        mwSignedIndex k = m-q;
         plhs[5] = mxCreateNumericMatrix(k,k,classid,cplxflag);
         V2pr = mxGetData(plhs[5]);
         if (cplx) {
@@ -421,8 +421,6 @@ void csd_double(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 void csd_single(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    ptrdiff_t lwork, lrwork, *iwork, info = 1;
-    size_t cplx = 0, dc = 1;
     float *X11p, *X11pr, *X12p, *X12pr, *X21p, *X21pr, *X22p, *X22pr;
     #if !(MX_HAS_INTERLEAVED_COMPLEX)
     float *X11pi, *X12pi, *X21pi, *X22pi;
@@ -432,12 +430,14 @@ void csd_single(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     float *U1pi, *U2pi, *V1pi, *V2pi;
     #endif
     float *theta, *work, *rwork, size, rsize;
-    size_t p, q, m, r, ldu1, ldu2, ldv1t, ldv2t, element_size = sizeof(float);
-    size_t mx11, nx11, ldx11, mx12, nx12, ldx12, mx21, nx21, ldx21, mx22, nx22, ldx22;
-    mwIndex i, j;
+    mwSignedIndex lwork, lrwork, *iwork, info = 1, cplx = 0, dc = 1;
+    mwSignedIndex i, j, p, q, m, r;
+    mwSignedIndex ldu1, ldu2, ldv1t, ldv2t, ldx11, ldx12, ldx21, ldx22; 
+    mwSize mx11, nx11, mx12, nx12, mx21, nx21, mx22, nx22;
     char jobu1='Y', jobu2='Y', jobv1t='Y', jobv2t='Y', trans='O', signs='D';
     mxClassID classid = mxSINGLE_CLASS;
     mxComplexity cplxflag = mxREAL;
+    size_t element_size = sizeof(float);
     
     /* check complex */
     if (mxIsComplex(prhs[0]) || mxIsComplex(prhs[1]) ||
@@ -576,7 +576,7 @@ void csd_single(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* allocate iwork matrix */
     r = max(1,min(min(p,m-p),min(q,m-q)));
     theta = mxMalloc(r*element_size);
-    iwork = mxCalloc(max(1,m-r),sizeof(ptrdiff_t));
+    iwork = mxCalloc(max(1,m-r),sizeof(mwSignedIndex));
     
     /* determine blocksize */
     lwork = -1;
@@ -618,11 +618,11 @@ void csd_single(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     size = size + 1;
     
     /* allocate work matrix */
-    lwork = max(1,(size_t)size);
+    lwork = max(1,(mwSignedIndex)size);
     work = mxCalloc(dc*lwork,element_size);
     if (cplx) {
         if (rsize > 0)
-            lrwork = max(1,(size_t)rsize);
+            lrwork = max(1,(mwSignedIndex)rsize);
         else {
             /* We compute the size of lrwork because LAPACK does not return it on a query call. */
             lrwork = 2 + 9*ldv1t + 9*ldv2t + max(1,8*p) + max(1,8*q);
@@ -756,7 +756,7 @@ void csd_single(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* create U2 matrix */
     if (nlhs > 4)
     {
-        size_t l = m-p;
+        mwSignedIndex l = m-p;
         plhs[4] = mxCreateNumericMatrix(l,l,classid,cplxflag);
         U2pr = mxGetData(plhs[4]);
         #if !(MX_HAS_INTERLEAVED_COMPLEX)
@@ -790,7 +790,7 @@ void csd_single(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /* create V2 matrix */
     if (nlhs > 5)
     {
-        size_t k = m-q;
+        mwSignedIndex k = m-q;
         plhs[5] = mxCreateNumericMatrix(k,k,classid,cplxflag);
         V2pr = mxGetData(plhs[5]);
         if (cplx) {
